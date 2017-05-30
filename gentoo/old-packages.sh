@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-N='6 months'
+TIME_BACK='6 months'
 # Script to detect packages older than 'N months'.
 # Various tools upgrade time to time:
 #     compiler, linkers, shells, CFLAGS, CXXFLAGS
@@ -10,9 +10,21 @@ N='6 months'
 #
 # Usage example:
 #    Rebuild a few old packages:
-#      ./old-packages.sh | shuf | head -n 10 | xargs emerge -1
+#      ./old-packages.sh --time-back='2 months' | shuf | head -n 10 | xargs emerge -1
 
-old_timestamp=$(date +'%s' -d "today - ${N}")
+for arg in "$@"; do
+    case "${arg}" in
+        --time-back=*)
+            TIME_BACK=${arg#--time-back=}
+            ;;
+        *)
+            echo "$0: unknown '${arg}' option"
+            exit 1
+            ;;
+    esac
+done
+
+old_timestamp=$(date +'%s' -d "today - ${TIME_BACK}")
 vdb_path=$(portageq vdb_path)
 
 for bt in "${vdb_path}"/*/*/BUILD_TIME; do
